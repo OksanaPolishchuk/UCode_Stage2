@@ -1,6 +1,7 @@
-void mx_swap_char(char *s1, char *s2) {
-    char tmp = *s2;
+#include "libmx.h"
 
-    *s2 = *s1;
-    *s1 = tmp;
+void mx_swap_char(char *s1, char *s2) {
+	char temp = *s1;
+	*s1 = *s2;
+	*s2 = temp;
 }

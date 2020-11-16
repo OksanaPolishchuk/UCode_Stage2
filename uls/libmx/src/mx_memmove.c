@@ -1,10 +1,14 @@
 #include "libmx.h"
 
 void *mx_memmove(void *dst, const void *src, size_t len) {
-    unsigned char *tmp = malloc(len);
+    unsigned char *pdst = dst;
+    const unsigned char *psrc = src;
+    char *temp = NULL;
 
-    mx_memcpy(tmp, src, len);
-    mx_memcpy(dst, tmp, len);
-    free(tmp);
-    return dst;
+    temp = mx_strnew(len);
+    mx_memcpy(temp, psrc, len);
+    for (size_t i = 0; i < len; i++)
+        pdst[i] = temp[i];
+    free(temp);
+    return (void *)pdst;
 }

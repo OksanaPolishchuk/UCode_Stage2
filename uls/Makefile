@@ -1,41 +1,87 @@
-NAME = uls
+# name of binary
+NAME		= uls
 
-FILES = main \
-		
-SRC_PREFFIX = $(addprefix src/, $(FILES))
+# main dir for source files
+SRC_DIR		= src/
+# main dir for obj files
+OBJ_DIR		= obj/
+# main dir for header files
+INC_DIR		= inc/
+# list of subdirs in src/
+DIRS		= $(notdir $(wildcard $(SRC_DIR)*))
+# list of only source C-files without extansions
+FILES		= $(foreach dir, $(DIRS), $(basename $(wildcard \
+			  $(SRC_DIR)$(dir)/*.c)))
+# adding extansions .c to FILES
+SRC			= $(FILES:%=%.c)
+# adding extansions .o to FILES
+OBJ			= $(SRC:src/%.c=$(OBJ_DIR)%.o)
+# list of header files
+INC_H		= $(wildcard $(INC_DIR)*.h)
 
-HEADER = inc/uls.h
 
-DEL_SRC = $(addsuffix .c, $(FILES))
+# main dir with any libraries
+LIB_DIR		= .
+# list of all names of libraries in LIB_DIR
+LIB_LIST	= libmx
+# make path to library ../libs/<lib_name>/
+LIB_DIRS	= $(foreach libdirs, $(LIB_LIST), $(LIB_DIR)/$(libdirs)/)
+# make path to ../libs/<lib_name>/<lib_name>.a
+LIB_BIN		= $(join $(LIB_DIRS), $(addsuffix .a, $(LIB_LIST)))
+# make path to ../libs/<lib_name>/inc
+LIB_INC		= $(addsuffix $(INC_DIR), $(LIB_DIRS))
 
-SRC = $(addsuffix .c, $(SRC_PREFFIX))
 
-SRC_COMPILE = $(addsuffix .c, $(SRC_PREFFIX))
+# compiler
+CC			= clang
+# general flags
+GFLAGS		= -std=c11 -pipe -Wall -Wextra -Werror -Wpedantic\
+	-Wno-unused-command-line-argument -Wno-unused-variable \
+	-Wno-unused-function -Wno-unused-parameter -g #-fsanitize=address
+# specific flags
+#CFLAGS		= -lsqlite3 -lpthread
+# folder with header files
+IFLAGS		= $(addprefix -I, $(LIB_INC) $(INC_DIR))
 
-OBJ = $(addsuffix .o, $(FILES))
+COMPILE		= $(CC) $(GFLAGS) $(IFLAGS) $(LIB_BIN)
+# -s(silent) -f() -C(launch from another folder)
+MAKE_M		= make -sf Makefile -C
+MKDIR		= mkdir -p
+RM			= /bin/rm -rf
 
-CFLAGS = -std=c11 -Werror -Wall -Wextra -Wpedantic
+# checking if libs are up to date
+all: $(NAME)
 
-LIB_A = libmx/libmx.a
+# LIB_BIN for libs dependency
+$(NAME): $(LIB_LIST) $(OBJ_DIR) $(OBJ)
+	@$(COMPILE) $(OBJ) -lmx -o $(NAME)
+	@printf "\r\33[2K$@ \033[32;1mcreated\033[0m\n"
 
-all: install
+$(LIB_BIN): $(LIB_LIST)
 
-install: uls
+# make for all libs
+$(LIB_LIST): $(LIB_DIRS)
+	@$(MAKE_M) $(LIB_DIR)/$@
 
-uls : $(SRC) $(INC)
-	@make -C libmx install
-	@clang $(CFLAGS) -c $(SRC_COMPILE)
-	@clang $(CFLAGS) $(OBJ) $(LIB_A) -o $(NAME)
-	@mkdir -p obj
-	@cp $(OBJ) obj/
-	@rm -rf $(OBJ)
+# make dirs for obj files
+$(OBJ_DIR):
+	@$(MKDIR) $@ $(foreach dir, $(DIRS), $@/$(dir))
 
-uninstall: clean
-	@make -C libmx uninstall
-	@rm -rf $(NAME)
+# comling obj files
+$(OBJ_DIR)%.o: $(SRC_DIR)%.c $(INC_H) $(LIB_BIN)
+	@$(COMPILE) -o $@ -c $<
+	@printf "\r\33[2K$(NAME) \033[33;1mcompile \033[0m$(<:$(SRC_DIR)/%.c=%)"
 
 clean:
-	@make -C libmx clean
-	@rm -rf obj
+	@$(MAKE_M) $(LIB_DIR)/$(LIB_LIST) $@
+	@$(RM) $(OBJ_DIR)
+	@printf "obj in $(NAME)\t \033[31;1mdeleted\033[0m\n"
 
-reinstall: uninstall install
+uninstall:
+	@$(MAKE_M) $(LIB_DIR)/$(LIB_LIST) $@
+	@$(RM) $(OBJ_DIR) $(NAME)
+	@printf "$(NAME)\t \033[31;1muninstalled\033[0m\n"
+
+reinstall: uninstall all
+
+.PHONY: all clean uninstall reinstall $(LIB_LIST)

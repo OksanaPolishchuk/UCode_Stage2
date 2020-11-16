@@ -1,10 +1,9 @@
-int mx_strncmp(const char *s1, const char *s2, int n) {
-    int i = 0;
+#include "libmx.h"
 
-    while (s1[i] == s2[i] && i < n - 1) {
-        if (s1[i] == '\0' && s2[i] == '\0')
-            return 0;
-        i++;
+int mx_strncmp(const char *str1, const char *str2, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        if (str1[i] != str2[i])
+            return str1[i] - str2[i];
     }
-    return (const unsigned char)s1[i] - (const unsigned char)s2[i];
+    return 0;
 }

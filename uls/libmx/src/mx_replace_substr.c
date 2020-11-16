@@ -2,20 +2,27 @@
 
 char *mx_replace_substr(const char *str, const char *sub,
                         const char *replace) {
-    char *new = NULL;
+    char *arrrep = NULL;
+    int sub_len;
+    int replace_len;
+    int i = 0;
 
-    if (str && sub && replace) {
-        new = mx_strnew(mx_strlen(str) + (mx_strlen(replace) - mx_strlen(sub)) 
-                        * mx_count_substr(str, sub));
-        for (int i = 0; *str != '\0'; ) {
-            if (!mx_strncmp(str, sub, mx_strlen(sub))) {
-                mx_strcat(new, replace);
-                i += mx_strlen(replace);
-                str += mx_strlen(sub);
-            }
-            else
-                new[i++] = *str++;
+    if (!str || !sub || !replace)
+        return NULL;
+    sub_len = mx_strlen(sub);
+    replace_len = mx_strlen(replace);
+    i = mx_get_substr_index(str, sub);
+    arrrep = mx_strnew(mx_strlen(str) + (sub_len - replace_len) *
+    			mx_count_substr(str, sub));
+    i = 0;
+    while (*str) {
+        if (mx_strstr(str, sub) == str) {
+            mx_strcpy(&arrrep[i], replace);
+            i += sub_len;
+            str += replace_len;
         }
+        else
+            arrrep[i++] = *str++;
     }
-    return new;
+    return arrrep;
 }

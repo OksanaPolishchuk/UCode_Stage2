@@ -1,5 +1,8 @@
 #include "libmx.h"
 
 bool mx_isdigit(int c) {
-    return (c > 47 && c < 58) ? 1 : 0;
+	if (c >= '0' && c <= '9')
+		return true;
+	else
+		return false;
 }

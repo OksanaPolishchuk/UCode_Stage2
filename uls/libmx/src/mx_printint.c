@@ -1,15 +1,15 @@
 #include "libmx.h"
 
 void mx_printint(int n) {
-    if (n == INT_MIN) {
-        write(1, "-2147483648", 11);
-        return;
-    }
-    if (n < 0) {
-        mx_printchar('-');
-        n *= -1;
-    }
-    if (n > 9)
-        mx_printint(n / 10);
-    mx_printchar(n % 10 + 48);
+	long num = n;
+	if (num < 0) {
+		mx_printchar('-');
+		num *= -1;
+	}
+	if (num >= 0 && num <= 9)
+		mx_printchar(num + 48);
+	else if (num > 9) {
+		mx_printint(num / 10);
+		mx_printchar(num % 10 + 48);
+	}
 }
