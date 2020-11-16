@@ -4,3 +4,4 @@
 *.out
 tmain.c
 .swp
+.idea
